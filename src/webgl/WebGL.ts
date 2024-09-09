@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 const cameraDistance = 1;
 
-export default class Scene {
+export default class WebGL {
   width: number;
   height: number;
   scene: THREE.Scene;
@@ -11,8 +11,9 @@ export default class Scene {
 
   constructor() {
     // init
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    const canvas = document.querySelector("canvas.webgl") as HTMLCanvasElement;
+    this.width = canvas.width;
+    this.height = canvas.height;
 
     // Scene
     this.scene = new THREE.Scene();
@@ -23,14 +24,13 @@ export default class Scene {
     this.camera.position.set(0, 0, cameraDistance);
 
     // Renderer
-    const container = document.querySelector(".webgl") as HTMLElement;
     this.renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
       antialias: true,
       //   alpha: true,
     });
     this.renderer.setSize(this.width, this.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(this.renderer.domElement);
 
     // methods
     this.createCube();

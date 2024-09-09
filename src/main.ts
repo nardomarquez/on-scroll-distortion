@@ -1,6 +1,6 @@
 import "./style.css";
-import Scene from "./webgl/Scene";
+import WebGL from "./webgl/WebGL";
 
 window.addEventListener("load", () => {
-  new Scene();
+  new WebGL();
 });
