@@ -10,6 +10,26 @@
   font: inherit;
 }
 
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  width: 360px;
+  height: auto;
+  opacity: 0.25;
+}
+
 canvas {
   position: fixed;
   top: 0;
