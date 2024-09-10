@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import Item from "./Item";
+import Media from "./Media";
 import Lenis from "lenis";
 import { Sizes } from "../lib/types";
 
@@ -12,7 +12,7 @@ export default class WebGL {
   renderer: THREE.WebGLRenderer;
   lenis: Lenis;
   currentScroll: number;
-  items: Item[];
+  medias: Media[];
 
   constructor() {
     // scroll init
@@ -41,9 +41,9 @@ export default class WebGL {
     this.renderer.setSize(this.sizes.width, this.sizes.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // create items
+    // create medias
     let images = [...document.querySelectorAll("img")];
-    this.items = this.createItems(images);
+    this.medias = this.createMedias(images);
 
     // methods
     this.resize();
@@ -56,19 +56,19 @@ export default class WebGL {
     });
   }
 
-  createItems(images: HTMLImageElement[]): Item[] {
+  createMedias(images: HTMLImageElement[]): Media[] {
     return images.map((image) => {
-      const item = new Item({
+      const media = new Media({
         image: image,
         sizes: { width: this.sizes.width, height: this.sizes.height },
         currentScroll: this.currentScroll,
       });
 
-      if (item.imageData) {
-        this.scene.add(item.imageData.mesh);
+      if (media.imageData) {
+        this.scene.add(media.imageData.mesh);
       }
 
-      return item;
+      return media;
     });
   }
 
@@ -84,7 +84,7 @@ export default class WebGL {
   render() {
     requestAnimationFrame((e) => {
       this.lenis.raf(e);
-      this.items.forEach((item) => item.render());
+      this.medias.forEach((media) => media.render());
       this.renderer.render(this.scene, this.camera);
 
       this.render();

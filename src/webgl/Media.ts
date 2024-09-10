@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import { Sizes } from "../lib/types";
 
-interface ItemProps {
+interface MediaProps {
   image: HTMLImageElement;
   sizes: Sizes;
   currentScroll: number;
 }
 
-export default class Item {
+export default class Media {
   image: HTMLImageElement;
   sizes: Sizes;
   imageData: {
@@ -20,7 +20,7 @@ export default class Item {
   } | null = null;
   currentScroll: number;
 
-  constructor({ image, sizes, currentScroll }: ItemProps) {
+  constructor({ image, sizes, currentScroll }: MediaProps) {
     this.image = image;
     this.sizes = sizes;
     this.currentScroll = currentScroll;
