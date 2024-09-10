@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "types": ["vite-plugin-glsl/ext"],
 
     /* Linting */
     "strict": true,
