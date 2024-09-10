@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import vertexShader from "../shaders/vertex.glsl";
+import fragmentShader from "../shaders/fragment.glsl";
 import { Sizes } from "../lib/types";
 
 interface MediaProps {
@@ -13,6 +15,7 @@ export default class Media {
   imageData: {
     image: HTMLImageElement;
     mesh: THREE.Mesh;
+    material: THREE.RawShaderMaterial;
     top: number;
     left: number;
     width: number;
@@ -37,17 +40,23 @@ export default class Media {
     let bounds = this.image.getBoundingClientRect();
     let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
     let texture = new THREE.TextureLoader().load(this.image.src);
-    let material = new THREE.MeshBasicMaterial({
-      side: THREE.DoubleSide,
-      map: texture,
-      transparent: true,
-      wireframe: true,
+    let material = new THREE.RawShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms: {
+        tMap: { value: texture },
+        uPlaneSizes: { value: [0, 0] },
+        uImageSizes: { value: [0, 0] },
+      },
+      // wireframe: true,
     });
+    material.uniforms.uImageSizes.value = [this.image.naturalWidth, this.image.naturalHeight];
     const imageMesh = new THREE.Mesh(geometry, material);
     imageMesh.scale.set(bounds.width, bounds.height, 1);
     this.imageData = {
       image: this.image,
       mesh: imageMesh,
+      material: material,
       top: bounds.top,
       left: bounds.left,
       width: bounds.width,
@@ -72,6 +81,11 @@ export default class Media {
       this.imageData.width = bounds.width;
       this.imageData.height = bounds.height;
       this.imageData.mesh.scale.set(this.imageData.width, this.imageData.height, 1);
+
+      this.imageData.material.uniforms.uPlaneSizes.value = [
+        this.imageData.mesh.scale.x,
+        this.imageData.mesh.scale.y,
+      ];
     }
   }
 
