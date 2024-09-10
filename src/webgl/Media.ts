@@ -27,7 +27,7 @@ export default class Media {
 
     // methods
     this.createImage();
-    this.render();
+    this.update();
 
     // events
     window.addEventListener("resize", this.resize.bind(this));
@@ -82,7 +82,7 @@ export default class Media {
     };
   }
 
-  render() {
+  update() {
     this.updatePosition();
     this.updateImageData();
   }

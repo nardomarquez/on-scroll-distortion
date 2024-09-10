@@ -16,7 +16,6 @@ export default class WebGL {
 
   constructor() {
     // scroll init
-    window.scrollTo(0, 0);
     this.lenis = new Lenis();
     this.currentScroll = this.lenis.scroll;
 
@@ -47,7 +46,7 @@ export default class WebGL {
 
     // methods
     this.resize();
-    this.render();
+    this.update();
 
     // events
     window.addEventListener("resize", this.resize.bind(this));
@@ -81,13 +80,13 @@ export default class WebGL {
     this.camera.updateProjectionMatrix();
   }
 
-  render() {
+  update() {
     requestAnimationFrame((e) => {
       this.lenis.raf(e);
-      this.medias.forEach((media) => media.render());
+      this.medias.forEach((media) => media.update());
       this.renderer.render(this.scene, this.camera);
 
-      this.render();
+      this.update();
     });
   }
 }
