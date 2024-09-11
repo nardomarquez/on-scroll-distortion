@@ -47,9 +47,6 @@ export default class WebGL {
 
     // events
     window.addEventListener("resize", this.onResize.bind(this));
-    window.addEventListener("scroll", () => {
-      this.onScroll();
-    });
   }
 
   createMedias(images: HTMLImageElement[]): Media[] {
@@ -97,7 +94,9 @@ export default class WebGL {
     }
   }
 
-  onScroll(scroll: number = window.scrollY) {
+  onScroll(scroll: number) {
+    console.log(window.scrollY);
+
     if (this.medias) {
       this.medias.forEach((media) => media.onScroll(scroll));
     }
