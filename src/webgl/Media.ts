@@ -5,41 +5,40 @@ import { Sizes } from "../lib/types";
 
 interface MediaProps {
   image: HTMLImageElement;
-  sizes: Sizes;
-  currentScroll: number;
+  scene: THREE.Scene;
+  screen: Sizes;
+  viewport: Sizes;
+  index: number;
+  scroll: number;
 }
 
 export default class Media {
   image: HTMLImageElement;
-  sizes: Sizes;
-  imageData: {
-    image: HTMLImageElement;
-    mesh: THREE.Mesh;
-    material: THREE.RawShaderMaterial;
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-  } | null = null;
-  currentScroll: number;
+  parent: HTMLElement;
+  scene: THREE.Scene;
+  mesh: THREE.Mesh;
+  screen: Sizes;
+  viewport: Sizes;
+  scroll: number;
 
-  constructor({ image, sizes, currentScroll }: MediaProps) {
+  constructor({ image, scene, screen, viewport, scroll }: MediaProps) {
     this.image = image;
-    this.sizes = sizes;
-    this.currentScroll = currentScroll;
+    this.parent = image.parentElement as HTMLElement;
+    this.scene = scene;
+    this.screen = screen;
+    this.viewport = viewport;
+    this.scroll = scroll;
 
     // methods
-    this.createImage();
-    this.update();
+    this.mesh = this.createMesh();
 
-    // events
-    window.addEventListener("resize", this.resize.bind(this));
+    this.onResize({ screen: this.screen, viewport: this.viewport });
   }
 
-  createImage() {
-    let bounds = this.image.getBoundingClientRect();
+  createMesh() {
     let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
     let texture = new THREE.TextureLoader().load(this.image.src);
+
     let material = new THREE.RawShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -51,53 +50,44 @@ export default class Media {
       // wireframe: true,
     });
     material.uniforms.uImageSizes.value = [this.image.naturalWidth, this.image.naturalHeight];
-    const imageMesh = new THREE.Mesh(geometry, material);
-    imageMesh.scale.set(bounds.width, bounds.height, 1);
-    this.imageData = {
-      image: this.image,
-      mesh: imageMesh,
-      material: material,
-      top: bounds.top,
-      left: bounds.left,
-      width: bounds.width,
-      height: bounds.height,
-    };
+
+    const mesh = new THREE.Mesh(geometry, material);
+    this.scene.add(mesh);
+
+    return mesh;
   }
 
-  updatePosition() {
-    if (this.imageData) {
-      this.imageData.mesh.position.x =
-        this.imageData.left - this.sizes.width / 2 + this.imageData.width / 2;
-      this.imageData.mesh.position.y =
-        this.currentScroll - this.imageData.top + this.sizes.height / 2 - this.imageData.height / 2;
-    }
+  updateScale() {
+    this.mesh.scale.x = (this.viewport.width * this.parent.offsetWidth) / this.screen.width;
+    this.mesh.scale.y = (this.viewport.height * this.parent.offsetHeight) / this.screen.height;
   }
 
-  updateImageData() {
-    if (this.imageData) {
-      let bounds = this.image.getBoundingClientRect();
-      this.imageData.top = bounds.top + this.currentScroll;
-      this.imageData.left = bounds.left;
-      this.imageData.width = bounds.width;
-      this.imageData.height = bounds.height;
-      this.imageData.mesh.scale.set(this.imageData.width, this.imageData.height, 1);
-
-      this.imageData.material.uniforms.uPlaneSizes.value = [
-        this.imageData.mesh.scale.x,
-        this.imageData.mesh.scale.y,
-      ];
-    }
+  updateX(left = 0) {
+    this.mesh.position.x =
+      -(this.viewport.width / 2) +
+      this.mesh.scale.x / 2 +
+      left * (this.viewport.width / this.screen.width);
   }
 
-  resize() {
-    this.sizes = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    };
+  updateY(top = 0) {
+    this.mesh.position.y =
+      this.viewport.height / 2 -
+      this.mesh.scale.y / 2 -
+      (top - this.scroll) * (this.viewport.width / this.screen.width);
   }
 
-  update() {
-    this.updatePosition();
-    this.updateImageData();
+  onScroll(scroll: number) {
+    this.scroll = scroll;
+    this.updateY(this.parent.offsetTop);
+  }
+
+  onResize(sizes: { screen: Sizes; viewport: Sizes }) {
+    const { screen, viewport } = sizes;
+    this.screen = screen;
+    this.viewport = viewport;
+
+    this.updateScale();
+    this.updateX(this.parent.offsetLeft);
+    this.updateY(this.parent.offsetTop);
   }
 }
