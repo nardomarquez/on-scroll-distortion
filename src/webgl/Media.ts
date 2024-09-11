@@ -6,6 +6,7 @@ import { Sizes } from "../lib/types";
 interface MediaProps {
   image: HTMLImageElement;
   scene: THREE.Scene;
+  geometry: THREE.PlaneGeometry;
   screen: Sizes;
   viewport: Sizes;
   index: number;
@@ -16,12 +17,14 @@ export default class Media {
   image: HTMLImageElement;
   parent: HTMLElement;
   scene: THREE.Scene;
+  geometry: THREE.PlaneGeometry;
+  material: THREE.RawShaderMaterial;
   mesh: THREE.Mesh;
   screen: Sizes;
   viewport: Sizes;
   scroll: number;
 
-  constructor({ image, scene, screen, viewport, scroll }: MediaProps) {
+  constructor({ image, scene, screen, viewport, scroll, geometry }: MediaProps) {
     this.image = image;
     this.parent = image.parentElement as HTMLElement;
     this.scene = scene;
@@ -29,16 +32,16 @@ export default class Media {
     this.viewport = viewport;
     this.scroll = scroll;
 
-    // methods
+    // create mesh
+    this.geometry = geometry;
+    this.material = this.createMaterial();
     this.mesh = this.createMesh();
 
     this.onResize({ screen: this.screen, viewport: this.viewport });
   }
 
-  createMesh() {
-    let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
+  createMaterial() {
     let texture = new THREE.TextureLoader().load(this.image.src);
-
     let material = new THREE.RawShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -47,11 +50,14 @@ export default class Media {
         uPlaneSizes: { value: [0, 0] },
         uImageSizes: { value: [0, 0] },
       },
-      // wireframe: true,
     });
     material.uniforms.uImageSizes.value = [this.image.naturalWidth, this.image.naturalHeight];
 
-    const mesh = new THREE.Mesh(geometry, material);
+    return material;
+  }
+
+  createMesh() {
+    const mesh = new THREE.Mesh(this.geometry, this.material);
     this.scene.add(mesh);
 
     return mesh;
@@ -60,6 +66,8 @@ export default class Media {
   updateScale() {
     this.mesh.scale.x = (this.viewport.width * this.parent.offsetWidth) / this.screen.width;
     this.mesh.scale.y = (this.viewport.height * this.parent.offsetHeight) / this.screen.height;
+
+    this.material.uniforms.uPlaneSizes.value = [this.mesh.scale.x, this.mesh.scale.y];
   }
 
   updateX(left = 0) {

@@ -53,10 +53,12 @@ export default class WebGL {
   }
 
   createMedias(images: HTMLImageElement[]): Media[] {
+    let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
     return images.map((image, index) => {
       const media = new Media({
         image: image,
         scene: this.scene,
+        geometry: geometry,
         screen: this.screen,
         viewport: this.viewport,
         scroll: this.scroll,
