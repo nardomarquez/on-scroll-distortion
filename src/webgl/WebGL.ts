@@ -10,12 +10,9 @@ export default class WebGL {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
-  scroll: number;
   medias: Media[];
 
   constructor() {
-    this.scroll = window.scrollY;
-
     // sizes
     this.screen = { width: window.innerWidth, height: window.innerHeight };
     this.viewport = { width: 0, height: 0 };
@@ -51,15 +48,13 @@ export default class WebGL {
 
   createMedias(images: HTMLImageElement[]): Media[] {
     let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
-    return images.map((image, index) => {
+    return images.map((image) => {
       const media = new Media({
         image: image,
         scene: this.scene,
         geometry: geometry,
         screen: this.screen,
         viewport: this.viewport,
-        scroll: this.scroll,
-        index,
       });
 
       return media;
@@ -95,8 +90,6 @@ export default class WebGL {
   }
 
   onScroll(scroll: number) {
-    console.log(window.scrollY);
-
     if (this.medias) {
       this.medias.forEach((media) => media.onScroll(scroll));
     }

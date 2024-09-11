@@ -9,8 +9,6 @@ interface MediaProps {
   geometry: THREE.PlaneGeometry;
   screen: Sizes;
   viewport: Sizes;
-  index: number;
-  scroll: number;
 }
 
 export default class Media {
@@ -24,13 +22,13 @@ export default class Media {
   viewport: Sizes;
   scroll: number;
 
-  constructor({ image, scene, screen, viewport, scroll, geometry }: MediaProps) {
+  constructor({ image, scene, screen, viewport, geometry }: MediaProps) {
     this.image = image;
     this.parent = image.parentElement as HTMLElement;
     this.scene = scene;
     this.screen = screen;
     this.viewport = viewport;
-    this.scroll = scroll;
+    this.scroll = 0;
 
     // create mesh
     this.geometry = geometry;
