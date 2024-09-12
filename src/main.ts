@@ -25,8 +25,8 @@ class App {
   }
 
   addEventListeners() {
-    this.lenis.on("scroll", () => {
-      this.webgl.onScroll(this.lenis.scroll);
+    this.lenis.on("scroll", (e) => {
+      this.webgl.onScroll(e);
     });
   }
 }

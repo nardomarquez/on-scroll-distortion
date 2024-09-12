@@ -72,9 +72,9 @@ export default class WebGL {
     this.camera.updateProjectionMatrix();
   }
 
-  onScroll(scroll: number) {
+  onScroll({ scroll, velocity }: { scroll: number; velocity: number }) {
     if (this.medias) {
-      this.medias.forEach((media) => media.onScroll(scroll));
+      this.medias.forEach((media) => media.onScroll({ scroll, velocity }));
     }
   }
 
