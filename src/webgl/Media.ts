@@ -5,37 +5,34 @@ import { Sizes } from "../lib/types";
 
 interface MediaProps {
   image: HTMLImageElement;
-  scene: THREE.Scene;
   geometry: THREE.PlaneGeometry;
   screen: Sizes;
-  viewport: Sizes;
+  scene: THREE.Scene;
 }
 
 export default class Media {
   image: HTMLImageElement;
-  parent: HTMLElement;
-  scene: THREE.Scene;
   geometry: THREE.PlaneGeometry;
+  screen: Sizes;
+  scroll: number;
   material: THREE.RawShaderMaterial;
   mesh: THREE.Mesh;
-  screen: Sizes;
-  viewport: Sizes;
-  scroll: number;
 
-  constructor({ image, scene, screen, viewport, geometry }: MediaProps) {
+  constructor({ image, screen, geometry, scene }: MediaProps) {
     this.image = image;
-    this.parent = image.parentElement as HTMLElement;
-    this.scene = scene;
     this.screen = screen;
-    this.viewport = viewport;
     this.scroll = 0;
 
     // create mesh
     this.geometry = geometry;
     this.material = this.createMaterial();
-    this.mesh = this.createMesh();
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    scene.add(this.mesh);
 
-    this.onResize({ screen: this.screen, viewport: this.viewport });
+    // set mesh's initial position and scale
+    this.onResize();
+
+    this.addEventListeners();
   }
 
   createMaterial() {
@@ -48,52 +45,39 @@ export default class Media {
         uPlaneSizes: { value: [0, 0] },
         uImageSizes: { value: [0, 0] },
       },
+      wireframe: true,
     });
     material.uniforms.uImageSizes.value = [this.image.naturalWidth, this.image.naturalHeight];
 
     return material;
   }
 
-  createMesh() {
-    const mesh = new THREE.Mesh(this.geometry, this.material);
-    this.scene.add(mesh);
-
-    return mesh;
+  updatePosition() {
+    this.mesh.position.x =
+      this.image.offsetLeft - this.screen.width / 2 + this.image.offsetWidth / 2;
+    this.mesh.position.y =
+      this.scroll - this.image.offsetTop + this.screen.height / 2 - this.image.offsetHeight / 2;
   }
 
   updateScale() {
-    this.mesh.scale.x = (this.viewport.width * this.parent.offsetWidth) / this.screen.width;
-    this.mesh.scale.y = (this.viewport.height * this.parent.offsetHeight) / this.screen.height;
+    this.mesh.scale.x = this.image.offsetWidth;
+    this.mesh.scale.y = this.image.offsetHeight;
 
     this.material.uniforms.uPlaneSizes.value = [this.mesh.scale.x, this.mesh.scale.y];
   }
 
-  updateX(left = 0) {
-    this.mesh.position.x =
-      -(this.viewport.width / 2) +
-      this.mesh.scale.x / 2 +
-      left * (this.viewport.width / this.screen.width);
-  }
-
-  updateY(top = 0) {
-    this.mesh.position.y =
-      this.viewport.height / 2 -
-      this.mesh.scale.y / 2 -
-      (top - this.scroll) * (this.viewport.width / this.screen.width);
+  onResize() {
+    this.screen = { width: window.innerWidth, height: window.innerHeight };
+    this.updatePosition();
+    this.updateScale();
   }
 
   onScroll(scroll: number) {
     this.scroll = scroll;
-    this.updateY(this.parent.offsetTop);
+    this.updatePosition();
   }
 
-  onResize(sizes: { screen: Sizes; viewport: Sizes }) {
-    const { screen, viewport } = sizes;
-    this.screen = screen;
-    this.viewport = viewport;
-
-    this.updateScale();
-    this.updateX(this.parent.offsetLeft);
-    this.updateY(this.parent.offsetTop);
+  addEventListeners() {
+    window.addEventListener("resize", this.onResize.bind(this));
   }
 }
