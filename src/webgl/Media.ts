@@ -151,7 +151,7 @@ export default class Media {
 
   onScroll({ scroll, velocity }: { scroll: number; velocity: number }) {
     this.scroll = scroll;
-    this.scrollVelocity = velocity * 0.25;
+    this.scrollVelocity = velocity * 0.2;
     this.updatePosition();
   }
 
