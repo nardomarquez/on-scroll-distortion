@@ -6,16 +6,13 @@ const cameraDistance = 10;
 
 export default class WebGL {
   screen: Sizes;
-  viewport: Sizes;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   medias: Media[];
 
   constructor() {
-    // sizes
     this.screen = { width: window.innerWidth, height: window.innerHeight };
-    this.viewport = { width: 0, height: 0 };
 
     // Scene
     this.scene = new THREE.Scene();
@@ -42,56 +39,46 @@ export default class WebGL {
 
     this.update();
 
-    // events
-    window.addEventListener("resize", this.onResize.bind(this));
+    this.addEventListeners();
   }
 
   createMedias(images: HTMLImageElement[]): Media[] {
+    // use the same geometry for all medias
     let geometry = new THREE.PlaneGeometry(1, 1, 16, 16);
-    return images.map((image) => {
-      const media = new Media({
-        image: image,
-        scene: this.scene,
-        geometry: geometry,
-        screen: this.screen,
-        viewport: this.viewport,
-      });
 
-      return media;
-    });
+    return images.map(
+      (image) =>
+        new Media({
+          image: image,
+          geometry: geometry,
+          scene: this.scene,
+          screen: this.screen,
+        })
+    );
   }
 
   update() {
     this.renderer.render(this.scene, this.camera);
-    window.requestAnimationFrame(this.update.bind(this));
+    requestAnimationFrame(this.update.bind(this));
   }
 
   onResize() {
     this.screen = { width: window.innerWidth, height: window.innerHeight };
     this.renderer.setSize(this.screen.width, this.screen.height);
+
     this.camera.aspect = this.screen.width / this.screen.height;
+    this.camera.fov = 2 * Math.atan(this.screen.height / 2 / cameraDistance) * (180 / Math.PI);
+
     this.camera.updateProjectionMatrix();
-
-    const fov = this.camera.fov * (Math.PI / 180);
-    const height = 2 * Math.tan(fov / 2) * this.camera.position.z;
-    const width = height * this.camera.aspect;
-
-    this.viewport = { width, height };
-
-    if (this.medias) {
-      this.medias.forEach((media) =>
-        media.onResize({
-          screen: this.screen,
-          viewport: this.viewport,
-        })
-      );
-      this.onScroll(window.scrollY);
-    }
   }
 
   onScroll(scroll: number) {
     if (this.medias) {
       this.medias.forEach((media) => media.onScroll(scroll));
     }
+  }
+
+  addEventListeners() {
+    window.addEventListener("resize", this.onResize.bind(this));
   }
 }

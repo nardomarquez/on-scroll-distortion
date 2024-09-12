@@ -11,8 +11,10 @@
 }
 
 h1 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-family: Helvetica, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.05rem;
 }
 
 main {
@@ -20,7 +22,8 @@ main {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10rem;
+  gap: 4rem;
+  padding: 4rem 2rem;
 }
 
 img {
@@ -28,7 +31,7 @@ img {
   max-width: 100%;
   width: 300px;
   height: auto;
-  visibility: hidden;
+  opacity: 0.5;
 }
 
 canvas {
