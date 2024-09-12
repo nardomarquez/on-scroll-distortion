@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import Media from "./Media";
 import { Sizes } from "../lib/types";
+import Mouse from "./Mouse";
 
 const cameraDistance = 10;
 
@@ -10,8 +11,10 @@ export default class WebGL {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   medias: Media[];
+  mouse: Mouse;
 
   constructor() {
+    this.mouse = new Mouse();
     this.screen = { width: window.innerWidth, height: window.innerHeight };
 
     // Scene
@@ -58,6 +61,10 @@ export default class WebGL {
   }
 
   update() {
+    if (this.medias) {
+      this.medias.forEach((media) => media.update({ cursorPos: this.mouse.cursorPos, time: 0 }));
+    }
+
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.update.bind(this));
   }

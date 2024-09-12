@@ -31,7 +31,7 @@ img {
   max-width: 100%;
   width: 500px;
   height: auto;
-  opacity: 0.5;
+  opacity: 0;
 }
 
 canvas {

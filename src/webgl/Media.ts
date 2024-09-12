@@ -1,8 +1,12 @@
 import * as THREE from "three";
 import vertexShader from "../shaders/vertex.glsl";
 import fragmentShader from "../shaders/fragment.glsl";
-import { Sizes } from "../lib/types";
+import { Position, Sizes } from "../lib/types";
 import { lerp } from "../lib/utils";
+import { gsap } from "gsap";
+import CustomEase from "gsap/CustomEase";
+
+gsap.registerPlugin(CustomEase);
 
 interface MediaProps {
   image: HTMLImageElement;
@@ -21,14 +25,8 @@ export default class Media {
 
   // mouse props
   scrollVelocity: number;
-  mouseOverPos: {
-    current: { x: number; y: number };
-    target: { x: number; y: number };
-  };
-  cursorPos: {
-    current: { x: number; y: number };
-    target: { x: number; y: number };
-  };
+  mouseOverPos: Position;
+  cursorPos: Position;
   cursorRaf: number | null = null;
   mouseEnter: number = 0;
 
@@ -39,14 +37,8 @@ export default class Media {
     // scroll props
     this.scroll = 0;
     this.scrollVelocity = 0;
-    this.mouseOverPos = {
-      current: { x: 0.5, y: 0.5 },
-      target: { x: 0.5, y: 0.5 },
-    };
-    this.cursorPos = {
-      current: { x: 0.5, y: 0.5 },
-      target: { x: 0.5, y: 0.5 },
-    };
+    this.mouseOverPos = { current: { x: 0.5, y: 0.5 }, target: { x: 0.5, y: 0.5 } };
+    this.cursorPos = { current: { x: 0.5, y: 0.5 }, target: { x: 0.5, y: 0.5 } };
 
     // create mesh
     this.geometry = geometry;
@@ -76,7 +68,6 @@ export default class Media {
         uMouseEnter: { value: 0 },
         uMouseOverPos: { value: new THREE.Vector2(0.5, 0.5) },
       },
-      wireframe: true,
     });
     material.uniforms.uImageSizes.value = [this.image.naturalWidth, this.image.naturalHeight];
 
@@ -97,46 +88,25 @@ export default class Media {
     this.material.uniforms.uPlaneSizes.value = [this.mesh.scale.x, this.mesh.scale.y];
   }
 
-  lerpCursorPos() {
-    const x = lerp(this.cursorPos.current.x, this.cursorPos.target.x, 0.05);
-    const y = lerp(this.cursorPos.current.y, this.cursorPos.target.y, 0.05);
-
-    this.cursorPos.current.x = x;
-    this.cursorPos.current.y = y;
-
-    const delta = Math.sqrt(
-      (this.cursorPos.target.x - this.cursorPos.current.x) ** 2 +
-        (this.cursorPos.target.y - this.cursorPos.current.y) ** 2
-    );
-
-    if (delta < 0.001 && this.cursorRaf) {
-      cancelAnimationFrame(this.cursorRaf);
-      this.cursorRaf = null;
-      return;
-    }
-
-    this.cursorRaf = requestAnimationFrame(this.lerpCursorPos.bind(this));
-  }
-
-  update(time = 0) {
+  update({ time, cursorPos }: { time: number; cursorPos: Position }) {
     time /= 1000;
 
     this.mouseOverPos.current.x = lerp(
       this.mouseOverPos.current.x,
       this.mouseOverPos.target.x,
-      0.05
+      0.5
     );
     this.mouseOverPos.current.y = lerp(
       this.mouseOverPos.current.y,
       this.mouseOverPos.target.y,
-      0.05
+      0.5
     );
 
     this.material.uniforms.uResolution.value.x = window.innerWidth;
     this.material.uniforms.uResolution.value.y = window.innerHeight;
     this.material.uniforms.uTime.value = time;
-    this.material.uniforms.uCursor.value.x = this.cursorPos.current.x;
-    this.material.uniforms.uCursor.value.y = this.cursorPos.current.y;
+    this.material.uniforms.uCursor.value.x = cursorPos.current.x;
+    this.material.uniforms.uCursor.value.y = cursorPos.current.y;
     this.material.uniforms.uScrollVelocity.value = this.scrollVelocity;
     this.material.uniforms.uMouseOverPos.value.x = this.mouseOverPos.current.x;
     this.material.uniforms.uMouseOverPos.value.y = this.mouseOverPos.current.y;
@@ -147,40 +117,48 @@ export default class Media {
     this.screen = { width: window.innerWidth, height: window.innerHeight };
     this.updatePosition();
     this.updateScale();
-    this.update();
   }
 
-  onMouseEnter() {}
-
   onMouseMove(e: MouseEvent) {
-    console.log("mousemove");
     const x = e.offsetX / this.image.offsetWidth;
     const y = e.offsetY / this.image.offsetHeight;
 
-    this.material.uniforms.uMouseOverPos.value.x = x;
-    this.material.uniforms.uMouseOverPos.value.y = y;
+    this.mouseOverPos.target.x = x;
+    this.mouseOverPos.target.y = y;
+  }
+
+  onMouseEnter() {
+    gsap.to(this, {
+      mouseEnter: 1,
+      duration: 0.6,
+      ease: CustomEase.create("custom", "0.4, 0, 0.2, 1"),
+    });
+  }
+
+  onMouseLeave() {
+    gsap.to(this, {
+      mouseEnter: 0,
+      duration: 0.6,
+      ease: CustomEase.create("custom", "0.4, 0, 0.2, 1"),
+    });
+    gsap.to(this.mouseOverPos.target, {
+      x: 0.5,
+      y: 0.5,
+      duration: 0.6,
+      ease: CustomEase.create("custom", "0.4, 0, 0.2, 1"),
+    });
   }
 
   onScroll({ scroll, velocity }: { scroll: number; velocity: number }) {
     this.scroll = scroll;
-    this.scrollVelocity = velocity;
+    this.scrollVelocity = velocity * 0.25;
     this.updatePosition();
-    this.update();
   }
 
   addEventListeners() {
     window.addEventListener("resize", this.onResize.bind(this));
-
-    // LOGIC
-    window.addEventListener("mousemove", (event) => {
-      this.cursorPos.target.x = event.clientX / window.innerWidth;
-      this.cursorPos.target.y = event.clientY / window.innerHeight;
-
-      if (!this.cursorRaf) {
-        this.cursorRaf = requestAnimationFrame(this.lerpCursorPos.bind(this));
-      }
-    });
-
     this.image.addEventListener("mousemove", this.onMouseMove.bind(this));
+    this.image.addEventListener("mouseenter", this.onMouseEnter.bind(this));
+    this.image.addEventListener("mouseleave", this.onMouseLeave.bind(this));
   }
 }

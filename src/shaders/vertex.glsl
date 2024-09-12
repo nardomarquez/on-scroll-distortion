@@ -1,3 +1,5 @@
+float PI = 3.141592653589793;
+
 attribute vec2 uv;
 attribute vec3 position;
  
@@ -17,8 +19,16 @@ uniform vec2 uMouseOverPos; // 0 (left) 0 (top) / 1 (right) 1 (bottom)
 
 varying vec2 vUv;  // 0 (left) 0 (bottom) - 1 (top) 1 (right)
 
+vec3 deformationCurve(vec3 position, vec2 uv) {
+  position.y = position.y - (sin(uv.x * PI) * uScrollVelocity * -0.01);
+  
+  return position;
+}
+
 void main() {
   vUv = uv;
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  vec3 deformedPosition = deformationCurve(position, uv);
+
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(deformedPosition, 1.0);
 }
